@@ -1,0 +1,11 @@
+.DS_Store
+*.log
+backup/
+tmp/
+*.wgt
+*.p12
+*.pem
+*.key
+device-profile.xml
+.DS_Store?
+._*
