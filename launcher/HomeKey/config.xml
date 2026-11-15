@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets" id="https://aitv.local/homekey" version="1.0.0" viewmodes="maximized">
+    <tizen:application id="AiTVKeyApp.HomeKey" package="AiTVKeyApp" required_version="2.3"/>
+    <name>AiTVHomeKey</name>
+    <author href="https://aitv.local">AiTV</author>
+    <description>Key app: opens AiTV, then exits.</description>
+    <content src="index.html"/>
+    <icon src="icon.png"/>
+    <feature name="http://tizen.org/feature/screen.size.all"/>
+    <access origin="*" subdomains="true"/>
+    <tizen:privilege name="http://tizen.org/privilege/internet"/>
+    <tizen:privilege name="http://tizen.org/privilege/application.launch"/>
+    <tizen:profile name="tv-samsung"/>
+    <tizen:setting screen-orientation="landscape" context-menu="disable" background-support="disable" encryption="disable" install-location="auto" hwkey-event="enable"/>
+</widget>

@@ -42,7 +42,7 @@ Apps panel ───────────────────────
                                    (REST /api/v2/ still developerMode=0, developerIP="")
                                                     │ full restart of the TV
                                                     ▼
-                                   Applied: REST developerMode=1, developerIP=192.168.0.9,
+                                   Applied: REST developerMode=1, developerIP=192.168.0.10,
                                    TCP 26101 open, Apps panel shows the "Develop Mode" tag [S]
 ```
 
@@ -56,7 +56,7 @@ Key facts:
    number-key codes. **[S]**
 3. **There is NO auto-advance.** After the 3rd digit the box stays focused and further digits
    are dropped; you must send `KEY_RIGHT` to move to the next octet — including after 1‑digit
-   octets. `192.168.0.9` = `192` `RIGHT` `168` `RIGHT` `0` `RIGHT` `9`. No zero padding. **[V]**
+   octets. `192.168.0.10` = `192` `RIGHT` `168` `RIGHT` `0` `RIGHT` `9`. No zero padding. **[V]**
 4. **`OK` closes the dialog silently** — no "restart now?" prompt was shown. The setting is only
    staged at this point. **[V]** (the "Restart" popup in Samsung's current doc, Figure 5, is
    from a newer Tizen UI — see §7).
@@ -64,7 +64,7 @@ Key facts:
    with `12345` shows empty fields. **[V]**
 6. **The REST API is not live-updated by the dialog.** While the dialog was being edited and for
    ~70 s after `OK` (before the reboot) `/api/v2/` kept `developerMode: 0`, `developerIP: ""`;
-   it flipped to `1` / `192.168.0.9` only after the TV came back from the restart. **[V]**
+   it flipped to `1` / `192.168.0.10` only after the TV came back from the restart. **[V]**
 
 ## 3. The exact key sequence (primary — verified end-to-end on this TV)
 
@@ -83,7 +83,7 @@ KEY_ENTER
 # 2) toggle row → first octet
 KEY_DOWN
 
-# 3) type 192.168.0.9 — RIGHT is required between octets (no auto-advance)
+# 3) type 192.168.0.10 — RIGHT is required between octets (no auto-advance)
 KEY_1 KEY_9 KEY_2
 KEY_RIGHT
 KEY_1 KEY_6 KEY_8
@@ -99,8 +99,8 @@ KEY_ENTER
 # 5) full restart (see §4), then verify (§5)
 ```
 
-Result on this unit: photo showed `192.168.0.9` in the four boxes before `OK`; after the restart
-the TV exposed `developerMode=1`, `developerIP=192.168.0.9` and TCP 26101. **[V]**
+Result on this unit: photo showed `192.168.0.10` in the four boxes before `OK`; after the restart
+the TV exposed `developerMode=1`, `developerIP=192.168.0.10` and TCP 26101. **[V]**
 
 **Pacing gotcha [V]:** one `KEY_RIGHT` was silently swallowed when sent in a fast burst —
 the dialog ignored it and the next digits landed in the previous octet. If a `RIGHT` seems to
@@ -116,7 +116,7 @@ have no effect, pause ≥1 s and send it again before typing the next octet.
 | F4 | octets filled wrongly (leftover `0`s, shifted digits) | `KEY_RETURN`, re-open with `12345`, redo from step 2. There is no delete key; a clean re-open is faster. **[V]** |
 | F5 | cannot reach/activate `OK` | from octet 4: `KEY_DOWN`, then `KEY_LEFT`/`KEY_RIGHT` until `OK` is highlighted, `KEY_ENTER`. If `OK` was accepted but REST stays `0` after the restart, redo the whole dialog. **[U]** |
 | F6 | all keys ignored | check the websocket session (`ms.channel.unauthorized` → re-pair in `tv/tv_remote.py`); the dialog needs keys only, no extra pairing. |
-| F7 | number keys rejected entirely | try `SendInputString` with `"192.168.0.9"` while octet 1 is focused (`tv/tv_remote.py send_text`) — unverified on Tizen 2.4. **[U]** |
+| F7 | number keys rejected entirely | try `SendInputString` with `"192.168.0.10"` while octet 1 is focused (`tv/tv_remote.py send_text`) — unverified on Tizen 2.4. **[U]** |
 
 ## 4. Restart (required for the setting to take effect)
 
@@ -131,23 +131,23 @@ have no effect, pause ≥1 s and send it again before typing the next octet.
   rebooted, applied dev mode, then went back to standby at 19:49:18. If you replay the long
   press, expect to send one `KEY_POWER` click afterwards to wake the TV; dev mode survives it
   (verified: after a manual wake at 19:53:31 the TV still reported `developerMode=1`,
-  `developerIP=192.168.0.9`). Alternatively just ask the owner to hold the physical power
+  `developerIP=192.168.0.10`). Alternatively just ask the owner to hold the physical power
   button / unplug the TV for a minute.
 - Do not re-open the dialog after a successful restart; dev mode persists across power cycles
   until it is turned `Off`. **[V]**
 
 ## 5. How to verify without a photo
 
-Run from the Mac (TV = `192.168.0.176`, host PC IP = `192.168.0.9`):
+Run from the Mac (TV = `192.168.0.100`, host PC IP = `192.168.0.10`):
 
 | # | Check | Command | Expected |
 |---|---|---|---|
-| 1 | REST state — the authoritative applied state | `curl -s http://192.168.0.176:8001/api/v2/ \| python3 -c 'import json,sys;d=json.load(sys.stdin)["device"];print(d["developerMode"], repr(d["developerIP"]))'` | before restart `0 ''`; after restart `1 '192.168.0.9'` **[V]** |
-| 2 | sdbd port | `nc -z -G 2 192.168.0.176 26101 && echo open` | open only after the restart **[V]** |
-| 3 | sdb device | `sdb devices` | `192.168.0.176:26101  device  UE40K6500` **[V, backup 20261114-194852]** |
-| 4 | Apps2Samsung readiness | `tools_bin/apps2samsung-cli tv 192.168.0.176 --local-ip 192.168.0.9 --json` | `"developerMode": true, "developerIp": "192.168.0.9", "debugPortOpen": true, "ready": true`, no `notReadyReason` (before: `"problem": "DeveloperModeOff"`) |
+| 1 | REST state — the authoritative applied state | `curl -s http://192.168.0.100:8001/api/v2/ \| python3 -c 'import json,sys;d=json.load(sys.stdin)["device"];print(d["developerMode"], repr(d["developerIP"]))'` | before restart `0 ''`; after restart `1 '192.168.0.10'` **[V]** |
+| 2 | sdbd port | `nc -z -G 2 192.168.0.100 26101 && echo open` | open only after the restart **[V]** |
+| 3 | sdb device | `sdb devices` | `192.168.0.100:26101  device  UE40K6500` **[V, backup 20261114-194852]** |
+| 4 | Apps2Samsung readiness | `tools_bin/apps2samsung-cli tv 192.168.0.100 --local-ip 192.168.0.10 --json` | `"developerMode": true, "developerIp": "192.168.0.10", "debugPortOpen": true, "ready": true`, no `notReadyReason` (before: `"problem": "DeveloperModeOff"`) |
 | 5 | project readiness | `toolchain/tv-ready.sh` | 26101 open + sdb lists the TV |
-| 6 | `sdb capability` | `sdb -s 192.168.0.176:26101 capability` | `secure_protocol:enabled`, `intershell_support:disabled` (expected on this unit) **[V]** |
+| 6 | `sdb capability` | `sdb -s 192.168.0.100:26101 capability` | `secure_protocol:enabled`, `intershell_support:disabled` (expected on this unit) **[V]** |
 
 Boot-timing note **[V]**: after a restart TCP 26101 can accept connections ~30 s *before* the
 HTTP API on 8001 answers (observed 19:47:23 open vs 19:47:52 API up). Poll both for up to
@@ -165,11 +165,11 @@ human): Apps panel shows a `Develop Mode` tag at the top after the reboot. **[S]
 - **Fields blank again when the dialog is re-opened before the restart** — normal: nothing is
   saved until `OK` + restart. **[S]** Samsung dev forum (M5500/SDB thread); **[V]** here.
 - **RTL (Arabic/Hebrew UI) mirrors the octets** → the IP must be entered reversed
-  (`192.168.0.9` → `9.0.168.192`); the known fix is to switch the TV UI language to English,
+  (`192.168.0.10` → `9.0.168.192`); the known fix is to switch the TV UI language to English,
   re-enter the IP and restart. **[S]** TizenTube guide, moonlight-tizen wiki, install-wgt-tizen
   README, Samsung dev forum #18287. Not applicable to this RU (LTR) unit. **[U]**
-- **Host PC IP must be this Mac's LAN address (`192.168.0.9`, `en0`)**. This Mac has VPN
-  interfaces; Apps2Samsung auto-detects `172.16.9.1` — always pass `--local-ip 192.168.0.9`.
+- **Host PC IP must be this Mac's LAN address (`192.168.0.10`, `en0`)**. This Mac has VPN
+  interfaces; Apps2Samsung auto-detects `172.16.9.1` — always pass `--local-ip 192.168.0.10`.
   If the TV stores the wrong address, sdb connect fails even with dev mode on. **[S + local docs]**
 - **Standby is not a restart**: some sets need a power-cycle/unplug for `sdbd` to start. **[S]**
 - **Dev mode can switch itself off** after a day on some sets — re-enable, re-enter IP, reboot. **[S]**
@@ -200,8 +200,8 @@ human): Apps panel shows a `Develop Mode` tag at the top after the reboot. **[S]
 `appuninstall`, `debug`, `execute`, `applaunch`, `screenshot`) answer `closed`.
 
 Install paths still to try now that dev mode is on (not verified yet): Tizen CLI
-(`toolchain/tizen.sh install -s 192.168.0.176:26101 -n <app>.wgt -- <dir>`), the in-process
-Apps2Samsung CLI (`apps2samsung-cli install … --local-ip 192.168.0.9`, optionally
+(`toolchain/tizen.sh install -s 192.168.0.100:26101 -n <app>.wgt -- <dir>`), the in-process
+Apps2Samsung CLI (`apps2samsung-cli install … --local-ip 192.168.0.10`, optionally
 `--via tvstore`), and bare `sdb install <app>.wgt`. Inspect
 `~/Library/Application Support/Apps2Samsung/cli/logs/` to see which SDB verbs the CLI actually
 issues; that log is the fastest way to tell whether the TV accepts an install method at all.
@@ -222,7 +222,7 @@ for reference):
   ("No DUID for selected device was found in the certificate profile"). So on a retail 2016
   set the refusal may be the missing permit/certificate step, not the verb spelling.
 
-Cheap probes that are safe to run next: `sdb -s 192.168.0.176:26101 shell 0 uname`,
+Cheap probes that are safe to run next: `sdb -s 192.168.0.100:26101 shell 0 uname`,
 `… shell 0 getappinstallpath`, `… shell 0 getduid` (they show whether the plugin allows more
 than `applist`, and give the DUID for a certificate profile); then `sdb -s … install <wgt>`;
 then Tizen Studio Device Manager → right-click TV → "Permit to install applications" (needs a

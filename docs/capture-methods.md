@@ -1,12 +1,12 @@
 # Capturing the screen of a Samsung UE40K6500 (2016, Tizen 2.4, retail) — options, evidence, confidence
 
-Target: `192.168.0.176`, model `UE40K6500`, platform `16_HAWKM_FHD`, Tizen 2.4 class
+Target: `192.168.0.100`, model `UE40K6500`, platform `16_HAWKM_FHD`, Tizen 2.4 class
 (`msfVersion 2.1.0`, `/api/v2/` says `OS: Tizen`, `firmwareVersion: Unknown`), retail firmware, no root.
-Host Mac `192.168.0.9` (`en0`, macOS 26.5.1).
+Host Mac `192.168.0.10` (`en0`, macOS 26.5.1).
 
 Research date 2026-11-14. Three TV states were observed live: (1) Developer Mode **off**, sdb `26101`
 closed — REST/websocket probes 19:43–19:48 (§0.2–0.6); (2) TV briefly off, `Host is down`, 19:52–19:54;
-(3) Developer Mode **ON** (`developerMode:1`, `developerIP:192.168.0.9`), sdb connected, `26101` open —
+(3) Developer Mode **ON** (`developerMode:1`, `developerIP:192.168.0.10`), sdb connected, `26101` open —
 the definitive daemon probe 19:55–19:58 (§0.9). Nothing here changes the TV; the probes are read-only
 except one push of a 6-byte temp file to `/tmp` (§0.9).
 
@@ -69,7 +69,7 @@ screenshot automation of Samsung UI; do promise automated state verification + a
 
 ## 0. Live evidence collected on this TV (2026-11-14)
 
-### 0.1 Ports on 192.168.0.176 while the TV was on
+### 0.1 Ports on 192.168.0.100 while the TV was on
 
 ```
 8001 OPEN   REST API + MultiScreen (/api/v2/, /ms/1.0/, /ws/apps/)
@@ -84,7 +84,7 @@ screenshot automation of Samsung UI; do promise automated state verification + a
 ### 0.2 The 8002 websocket works on this 2016 set **without a token**
 
 ```
-wss://192.168.0.176:8002/api/v2/channels/samsung.remote.control?name=<base64("dsh-probe")>
+wss://192.168.0.100:8002/api/v2/channels/samsung.remote.control?name=<base64("dsh-probe")>
 <- {"event":"ms.channel.connect","data":{"id":"…","clients":[{"attributes":{"name":"ZHNoLWFnZW50"},…}]}}
 ```
 
@@ -141,9 +141,9 @@ GET /ws/apps/                            200  DIAL device descriptor XML (same a
 ### 0.6 7676/7678/8080 are not capture services
 
 ```
-GET http://192.168.0.176:7676/  -> 400 SOAP UPnPError 402, SERVER: UPnP/1.1 Samsung AllShare Server/1.0
-GET http://192.168.0.176:7678/  -> 400 SOAP UPnPError 402, same server
-GET http://192.168.0.176:8080/  -> 404 "WebServer" (Samsung mini web server, /api/v2/ style REST front)
+GET http://192.168.0.100:7676/  -> 400 SOAP UPnPError 402, SERVER: UPnP/1.1 Samsung AllShare Server/1.0
+GET http://192.168.0.100:7678/  -> 400 SOAP UPnPError 402, same server
+GET http://192.168.0.100:8080/  -> 404 "WebServer" (Samsung mini web server, /api/v2/ style REST front)
 ```
 
 ### 0.7 How to reproduce the live evidence (when the TV is back on)
@@ -153,7 +153,7 @@ GET http://192.168.0.176:8080/  -> 404 "WebServer" (Samsung mini web server, /ap
 .venv/bin/python - <<'PY'
 import base64, json, ssl, websocket
 ws = websocket.create_connection(
-    "wss://192.168.0.176:8002/api/v2/channels/samsung.remote.control?name="
+    "wss://192.168.0.100:8002/api/v2/channels/samsung.remote.control?name="
     + base64.b64encode(b"dsh-probe").decode(),
     timeout=8, sslopt={"cert_reqs": ssl.CERT_NONE, "check_hostname": False})
 ws.settimeout(4)
@@ -172,9 +172,9 @@ ws.close()
 PY
 
 # REST state + 404 capture probes
-curl -s http://192.168.0.176:8001/api/v2/ | head -c 400
-curl -s http://192.168.0.176:8001/api/v2/applications/111299001912
-curl -s -o /dev/null -w '%{http_code}\n' http://192.168.0.176:8001/api/v2/screenshot   # 404
+curl -s http://192.168.0.100:8001/api/v2/ | head -c 400
+curl -s http://192.168.0.100:8001/api/v2/applications/111299001912
+curl -s -o /dev/null -w '%{http_code}\n' http://192.168.0.100:8001/api/v2/screenshot   # 404
 ```
 
 ### 0.8 Local toolchain: nothing can take a screenshot
@@ -196,11 +196,11 @@ curl -s -o /dev/null -w '%{http_code}\n' http://192.168.0.176:8001/api/v2/screen
 
 ### 0.9 DEFINITIVE daemon probe — Developer Mode ON, 2026-11-14 19:55–19:58
 
-TV on, `developerMode:1`, `developerIP:192.168.0.9`, `sdb devices` → `192.168.0.176:26101  device  UE40K6500`.
+TV on, `developerMode:1`, `developerIP:192.168.0.10`, `sdb devices` → `192.168.0.100:26101  device  UE40K6500`.
 (`backup/probe-20261114-194814/` and `backup/20261114-194852/` hold the same generation of probe output.)
 
 ```
-$ sdb -s 192.168.0.176:26101 capability
+$ sdb -s 192.168.0.100:26101 capability
 secure_protocol:enabled   intershell_support:disabled   filesync_support:push      usbproto_support:enabled
 sockproto_support:enabled rootonoff_support:disabled    zone_support:disabled      multiuser_support:disabled
 cpu_arch:armv7            profile_name:tv               vendor_name:Samsung
@@ -217,7 +217,7 @@ $ sdb -s … shell 0 was_execute 9999.Nonexistent
       app_id[] launch failed[400]
       launch app failed
       spend time for wascmd is [64]ms
-$ sdb -s … shell 0 getduid  -> XTCFUGIOVLWWE
+$ sdb -s … shell 0 getduid  -> <DUID>
 $ sdb -s … shell 0 debug 9999.Nonexistent -> closed
 $ sdb -s … push /tmp/dsh-probe.txt /tmp/dsh-probe.txt  -> pushed, 1 file(s) pushed (6 bytes)
 $ sdb -s … pull /tmp/dsh-probe.txt /tmp/…              -> error: failed to read '…': NO support file pull
@@ -343,8 +343,8 @@ without path arguments, plus no public reference anywhere).
 ```sh
 $ . scripts/tv-env.sh
 $ $SDB devices
-192.168.0.176:26101   device   UE40K6500
-$ $SDB -s 192.168.0.176:26101 capability
+192.168.0.100:26101   device   UE40K6500
+$ $SDB -s 192.168.0.100:26101 capability
 secure_protocol:enabled   intershell_support:disabled   filesync_support:push   usbproto_support:enabled
 sockproto_support:enabled rootonoff_support:disabled    zone_support:disabled   multiuser_support:disabled
 cpu_arch:armv7            profile_name:tv               vendor_name:Samsung
@@ -363,7 +363,7 @@ platform_version:2.4.0    product_version:2.0           sdbd_version:2.2.31     
 | `sdb shell 0 was_execute 9999.Nonexistent` | **accepted** → `launch app 9999.Nonexistent` / `app_id[] launch failed[400]` / `launch app failed` / `spend time for wascmd is [64]ms` |
 | `sdb shell 0 debug 9999.Nonexistent` | `closed` — `debug` **not** confirmed on this build (see §3.2) |
 | `sdb shell 0 was_kill 9999.Nonexistent` | `closed` — kill verb not confirmed; test with our real app id |
-| `sdb shell 0 getduid` | **WORKS** → `XTCFUGIOVLWWE` |
+| `sdb shell 0 getduid` | **WORKS** → `<DUID>` |
 | `sdb push /tmp/dsh-probe.txt /tmp/dsh-probe.txt` | **WORKS** (6-byte file pushed) |
 | `sdb pull /tmp/dsh-probe.txt …` | **FAILS** — `error: failed to read '…': NO support file pull` (filesync push-only) |
 | `sdb dlog` | `closed` |
@@ -468,12 +468,12 @@ Known mechanics (works on 2016+: Tizen Studio, Wits, agent-device, Appium driver
 
 ```sh
 # 1. launch the installed, debug-enabled app and get its inspector port
-$SDB -s 192.168.0.176:26101 shell 0 debug <numeric-app-id-or-package-id>
+$SDB -s 192.168.0.100:26101 shell 0 debug <numeric-app-id-or-package-id>
 #   example output from a Tizen 2.4/4 device:
 #   ... successfully launched pid = 3962 with debug 1 port: 39819
 
 # 2. forward that port to the Mac
-$SDB -s 192.168.0.176:26101 forward tcp:39819 tcp:39819
+$SDB -s 192.168.0.100:26101 forward tcp:39819 tcp:39819
 
 # 3. ask the inspector for its pages (Chrome DevTools HTTP API)
 curl -s http://127.0.0.1:39819/json
@@ -549,8 +549,8 @@ Crop the frame to the panel and use a fixed exposure/white balance so before/aft
 
 Because we control the launcher Tizen web app, it can report its own pixels/state to the Mac:
 
-* **State/heartbeat:** `fetch("http://192.168.0.9:8765/state", {method:"POST", body: JSON.stringify({…})})`
-  every 1–2 s (needs `<access origin="http://192.168.0.9:*" subdomains="true"/>` + internet privilege in
+* **State/heartbeat:** `fetch("http://192.168.0.10:8765/state", {method:"POST", body: JSON.stringify({…})})`
+  every 1–2 s (needs `<access origin="http://192.168.0.10:*" subdomains="true"/>` + internet privilege in
   `config.xml`; allowed for dev-signed apps). This proves "our app is in the foreground, on screen N,
   reacting to key X" with no sdb and no camera.
 * **DOM dump:** post `document.activeElement`, focused element id, visible text — enough to verify remote
@@ -594,9 +594,9 @@ Everything else is covered by §0.3/REST/WS state + the app's own telemetry.
 
 | Command | Output | Confidence |
 |---|---|---|
-| `sdb -s 192.168.0.176:26101 shell 0 applist` | **the app-list command on this generation — WORKS live**: ASCII table, 45 apps, columns `No`, `Name`, `Version`, `GUID`, `Package ID`, `App ID` (e.g. `9Ur5IzDKqV.TizenYouTube`) | **[verified-live]** |
+| `sdb -s 192.168.0.100:26101 shell 0 applist` | **the app-list command on this generation — WORKS live**: ASCII table, 45 apps, columns `No`, `Name`, `Version`, `GUID`, `Package ID`, `App ID` (e.g. `9Ur5IzDKqV.TizenYouTube`) | **[verified-live]** |
 | `sdb … shell 0 vd_applist` (and `--all`, `0 vd_appinfo`) | `closed` on this TV — the `vd_*` generation is not whitelisted on Tizen 2.4 retail | **[verified-live]** |
-| `sdb … shell 0 getduid` | **WORKS** → `XTCFUGIOVLWWE` (the DUID used for certificates) | **[verified-live]** |
+| `sdb … shell 0 getduid` | **WORKS** → `<DUID>` (the DUID used for certificates) | **[verified-live]** |
 | websocket `ed.installedApp.get` | JSON `appId`, `name`, `app_type`, `icon` — **verified live on this TV, no sdb needed** | [verified-live] |
 | `sdb -s … capability` | `profile_name:tv`, `vendor_name:Samsung`, `can_launch:tv-samsung-public_-_tv-samsung-partner`, `platform_version:2.4.0`, `product_version:2.0`, `sdbd_version:2.2.31`, `secure_protocol:enabled`, `intershell_support:disabled`, `filesync_support:push`, … | [verified-live] |
 | `tizen device list` | **does not exist** in Tizen Studio CLI 2.5.25; use `sdb devices` / Tizen Studio Connection Explorer | [verified-local] |
@@ -615,20 +615,20 @@ signal **[medium]**.
 # launch our installed app (works on this TV: 0 was_execute is accepted, 0 debug is NOT confirmed)
 # <app-id>: on this TV `0 applist` shows both "Package ID"/GUID and "App ID" (GUID.Name);
 # `0 debug` is documented with "<pkg>.<app>" (Tizen Studio) — try that and capture the exact reply.
-$SDB -s 192.168.0.176:26101 shell 0 was_execute <app-id>        # VERIFIED accepted on this TV
-$SDB -s 192.168.0.176:26101 shell 0 was_kill <app-id>           # UNCONFIRMED: closed with bogus id
-$SDB -s 192.168.0.176:26101 shell 0 debug <app-id>              # UNCONFIRMED on this build (closed with bogus id)
+$SDB -s 192.168.0.100:26101 shell 0 was_execute <app-id>        # VERIFIED accepted on this TV
+$SDB -s 192.168.0.100:26101 shell 0 was_kill <app-id>           # UNCONFIRMED: closed with bogus id
+$SDB -s 192.168.0.100:26101 shell 0 debug <app-id>              # UNCONFIRMED on this build (closed with bogus id)
 
 # install path: `0 vd_appinstall` is closed on this TV and `0 appinstall` was refused with bogus args
 # (§0.9) -> try the sdb package install verb / Tizen CLI first, not the `0 vd_appinstall` recipe of
 # 2020+ sets (and note the `0 appinstall tpk \`vconftool …\`` injection trick is a Tizen 5.5+ bug):
-$SDB -s 192.168.0.176:26101 install /path/to/app.wgt
-$TIZEN install -s 192.168.0.176:26101 -n app.wgt -- /path/to   # Tizen Studio CLI (needs working sdb install)
+$SDB -s 192.168.0.100:26101 install /path/to/app.wgt
+$TIZEN install -s 192.168.0.100:26101 -n app.wgt -- /path/to   # Tizen Studio CLI (needs working sdb install)
 
 # state checks, no sdb:
-curl -s http://192.168.0.176:8001/api/v2/applications/<numeric-app-id>   # {"running":true,"visible":…,"version":…}
-curl -s -X POST   http://192.168.0.176:8001/api/v2/applications/<id>    # launch via REST (documented)
-curl -s -X DELETE http://192.168.0.176:8001/api/v2/applications/<id>    # close via REST (documented)
+curl -s http://192.168.0.100:8001/api/v2/applications/<numeric-app-id>   # {"running":true,"visible":…,"version":…}
+curl -s -X POST   http://192.168.0.100:8001/api/v2/applications/<id>    # launch via REST (documented)
+curl -s -X DELETE http://192.168.0.100:8001/api/v2/applications/<id>    # close via REST (documented)
 # websocket alternative: {"method":"ms.channel.emit","params":{"event":"ed.apps.launch","to":"host",
 #   "data":{"action_type":"NATIVE_LAUNCH","appId":"<id>","metaTag":""}}}
 ```
@@ -641,10 +641,10 @@ GET worked; POST/DELETE untested to avoid changing TV state). DIAL `/ws/apps/<na
 
 ### 5.3 Version / device facts (for logs)
 
-* `curl -s http://192.168.0.176:8001/api/v2/` — model, `msfVersion`, `developerMode`, `developerIP`,
+* `curl -s http://192.168.0.100:8001/api/v2/` — model, `msfVersion`, `developerMode`, `developerIP`,
   resolution, countryCode, `OS: Tizen`; **not** the firmware version (`firmwareVersion: Unknown`).
-* `curl -s http://192.168.0.176:8001/ms/1.0/` — DUID, model, capabilities.
-* `http://192.168.0.176:9197/dmr` — serial number `0BLG3LEJ402718E`, `sec:ProductCap … FHD_SCREEN`.
+* `curl -s http://192.168.0.100:8001/ms/1.0/` — DUID, model, capabilities.
+* `http://192.168.0.100:9197/dmr` — serial number `<SERIAL>`, `sec:ProductCap … FHD_SCREEN`.
 * Firmware version: only `Menu → Support → Contact Samsung` (human, once).
 * `sdb version`, `sdb -s … get-serialno`, `sdb -s … capability` once dev mode is on.
 
@@ -678,7 +678,7 @@ only at milestones.
 #!/bin/sh
 # sketch: state snapshot + camera frame + optional OCR, one folder per step
 set -eu
-IP=192.168.0.176; OUT=backup/verify/$(date +%Y%m%d-%H%M%S); mkdir -p "$OUT"
+IP=192.168.0.100; OUT=backup/verify/$(date +%Y%m%d-%H%M%S); mkdir -p "$OUT"
 curl -s "http://$IP:8001/api/v2/" > "$OUT/api-v2.json"
 curl -s "http://$IP:8001/api/v2/applications/${APP_ID:-111299001912}" > "$OUT/app.json"
 curl -s "http://$IP:8001/ws/apps/YouTube" > "$OUT/dial-youtube.xml"
@@ -686,7 +686,7 @@ curl -s "http://$IP:8001/ws/apps/YouTube" > "$OUT/dial-youtube.xml"
 import base64,json,ssl,sys,websocket
 out=sys.argv[1]
 ws=websocket.create_connection(
- "wss://192.168.0.176:8002/api/v2/channels/samsung.remote.control?name="+base64.b64encode(b"verify").decode(),
+ "wss://192.168.0.100:8002/api/v2/channels/samsung.remote.control?name="+base64.b64encode(b"verify").decode(),
  timeout=8, sslopt={"cert_reqs":ssl.CERT_NONE,"check_hostname":False})
 while True:                                    # wait for channel ready
     if json.loads(ws.recv()).get("event")=="ms.channel.connect": break

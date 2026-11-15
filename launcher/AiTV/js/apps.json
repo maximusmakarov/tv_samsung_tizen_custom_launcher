@@ -1,0 +1,237 @@
+{
+    "_readme": [
+        "AiTV configuration. App ids are real: read from the TV itself with `sdb shell 0 applist` (UE40K6500, 2026-11-14).",
+        "wallpapers: files in wallpapers/, rotated every settings.wallpaperIntervalSec seconds.",
+        "dock: favourite entries shown in the bottom dock (order = left to right); the 'Все' tile is added by the UI.",
+        "library: every app shown in the 'Все приложения' overlay.",
+        "kind: 'app' (tizen.application.launch), 'input' (tizen.tvwindow HDMI source) or 'url'."
+    ],
+    "settings": {
+        "wallpaperIntervalSec": 45,
+        "launcherAppId": "AiTVLaunch.AiTV",
+        "homeKeyAppId": "AiTVKeyApp.HomeKey",
+        "allAppsTitle": "Все приложения",
+        "allAppsTileLabel": "Все",
+        "allAppsTileIcon": "icons/app/allapps.png"
+    },
+    "wallpapers": [
+        {
+            "src": "wallpapers/01.jpg",
+            "title": "Sunrise above the clouds",
+            "credit": "Unsplash License",
+            "source": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4"
+        },
+        {
+            "src": "wallpapers/02.jpg",
+            "title": "Alpine lake and boathouse",
+            "credit": "Unsplash License",
+            "source": "https://images.unsplash.com/photo-1470770841072-f978cf4d019e"
+        },
+        {
+            "src": "wallpapers/03.jpg",
+            "title": "Milky Way over snowy peaks",
+            "credit": "Unsplash License",
+            "source": "https://images.unsplash.com/photo-1519681393784-d120267933ba"
+        },
+        {
+            "src": "wallpapers/04.jpg",
+            "title": "Sunlight in a pine forest",
+            "credit": "Unsplash License",
+            "source": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e"
+        },
+        {
+            "src": "wallpapers/05.jpg",
+            "title": "Turquoise mountain lake",
+            "credit": "Unsplash License",
+            "source": "https://images.unsplash.com/photo-1501785888041-af3ef285b470"
+        },
+        {
+            "src": "wallpapers/06.jpg",
+            "title": "Highland valley at sunset",
+            "credit": "Unsplash License",
+            "source": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05"
+        }
+    ],
+    "dock": [
+        {
+            "id": "rutube",
+            "label": "RUTUBE",
+            "appId": "6M0RIAD0Nz.Rutube",
+            "kind": "app",
+            "icon": "icons/app/rutube.png",
+            "color": "#00B956"
+        },
+        {
+            "id": "kinopoisk",
+            "label": "Кинопоиск",
+            "appId": "LuOVXzgX7A.kpTizen",
+            "kind": "app",
+            "icon": "icons/app/kinopoisk.png",
+            "color": "#FF5C1A"
+        },
+        {
+            "id": "ivi",
+            "label": "IVI",
+            "appId": "FD7JrMU4L1.ivi",
+            "kind": "app",
+            "icon": "icons/app/ivi.png",
+            "color": "#FF2E63"
+        },
+        {
+            "id": "wink",
+            "label": "Wink",
+            "appId": "O0tF3EHRuU.itv",
+            "kind": "app",
+            "icon": "icons/app/wink.png",
+            "color": "#1ED7A5"
+        },
+        {
+            "id": "okko",
+            "label": "Okko",
+            "appId": "4uI12bRGkE.OkkoHD",
+            "kind": "app",
+            "icon": "icons/app/okko.png",
+            "color": "#9B5CFF"
+        },
+        {
+            "id": "hdmi",
+            "label": "HDMI",
+            "appId": "",
+            "kind": "input",
+            "input": "HDMI1",
+            "icon": "icons/app/hdmi.png",
+            "color": "#C9D1DC"
+        }
+    ],
+    "library": [
+        {
+            "id": "youtube",
+            "label": "YouTube",
+            "appId": "9Ur5IzDKqV.TizenYouTube",
+            "kind": "app",
+            "icon": "icons/app/youtube.png",
+            "color": "#FF3B30"
+        },
+        {
+            "id": "kinopoisk",
+            "label": "Кинопоиск",
+            "appId": "LuOVXzgX7A.kpTizen",
+            "kind": "app",
+            "icon": "icons/app/kinopoisk.png",
+            "color": "#FF5C1A"
+        },
+        {
+            "id": "ivi",
+            "label": "IVI",
+            "appId": "FD7JrMU4L1.ivi",
+            "kind": "app",
+            "icon": "icons/app/ivi.png",
+            "color": "#FF2E63"
+        },
+        {
+            "id": "wink",
+            "label": "Wink",
+            "appId": "O0tF3EHRuU.itv",
+            "kind": "app",
+            "icon": "icons/app/wink.png",
+            "color": "#1ED7A5"
+        },
+        {
+            "id": "okko",
+            "label": "Okko",
+            "appId": "4uI12bRGkE.OkkoHD",
+            "kind": "app",
+            "icon": "icons/app/okko.png",
+            "color": "#9B5CFF"
+        },
+        {
+            "id": "netflix",
+            "label": "Netflix",
+            "appId": "RN1MCdNq8t.Netflix",
+            "kind": "app",
+            "icon": "icons/app/netflix.png",
+            "color": "#FF2D3C"
+        },
+        {
+            "id": "kids",
+            "label": "YouTube Kids",
+            "appId": "5SLwh7m3En.TizenYouTubeKids",
+            "kind": "app",
+            "icon": "icons/app/kids.png",
+            "color": "#FFD028"
+        },
+        {
+            "id": "rutube",
+            "label": "RUTUBE",
+            "appId": "6M0RIAD0Nz.Rutube",
+            "kind": "app",
+            "icon": "icons/app/rutube.png",
+            "color": "#00B956"
+        },
+        {
+            "id": "moretv",
+            "label": "more.tv",
+            "appId": "tS1WjfC2lh.videomore",
+            "kind": "app",
+            "icon": "icons/app/moretv.png",
+            "color": "#00C2FF"
+        },
+        {
+            "id": "premier",
+            "label": "PREMIER",
+            "appId": "nsC12rhPXM.HuaweiTV",
+            "kind": "app",
+            "icon": "icons/app/premier.png",
+            "color": "#E53935"
+        },
+        {
+            "id": "amediateka",
+            "label": "Амедиатека",
+            "appId": "qwjbGGiuFp.Amedia",
+            "kind": "app",
+            "icon": "icons/app/amediateka.png",
+            "color": "#FF6B00"
+        },
+        {
+            "id": "peers",
+            "label": "Peers.TV",
+            "appId": "F3qo8NZD9m.PeersTV",
+            "kind": "app",
+            "icon": "icons/app/peers.png",
+            "color": "#00B0FF"
+        },
+        {
+            "id": "megafon",
+            "label": "МегаФон ТВ",
+            "appId": "sLK447Q6sz.megafon",
+            "kind": "app",
+            "icon": "icons/app/megafon.png",
+            "color": "#00C853"
+        },
+        {
+            "id": "mts",
+            "label": "МТС ТВ",
+            "appId": "ywC12rhACE.MTSTV",
+            "kind": "app",
+            "icon": "icons/app/mts.png",
+            "color": "#E30611"
+        },
+        {
+            "id": "browser",
+            "label": "Браузер",
+            "appId": "org.tizen.browser",
+            "kind": "app",
+            "icon": "icons/app/browser.png",
+            "color": "#4DA3FF"
+        },
+        {
+            "id": "hdmi",
+            "label": "HDMI",
+            "appId": "",
+            "kind": "input",
+            "input": "HDMI1",
+            "icon": "icons/app/hdmi.png",
+            "color": "#C9D1DC"
+        }
+    ]
+}

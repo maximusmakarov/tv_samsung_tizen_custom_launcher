@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru" class="prelayout">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="description" content="AiTV — минималистичный лаунчер для Samsung Tizen TV">
+    <title>AiTV</title>
+    <link rel="stylesheet" href="css/app.css">
+</head>
+<body class="booting">
+
+    <!-- rotating nature wallpapers: two stacked layers cross-fading (A/B) -->
+    <div class="wallpaper" id="wallpaper" aria-hidden="true">
+        <div class="wp-layer" id="wpLayerA" style="background-image:url('wallpapers/01.jpg')"></div>
+        <div class="wp-layer" id="wpLayerB"></div>
+        <div class="wp-scrim"></div>
+    </div>
+
+    <!-- dim + blur veil, only over the wallpaper, below the UI -->
+    <div class="dim" id="dim" aria-hidden="true"></div>
+
+    <header class="topbar">
+        <div class="clock-block">
+            <div class="clock" id="clock">--:--</div>
+            <div class="date" id="date"></div>
+        </div>
+        <div class="hint" id="hint">&#9664; &#9654; выбрать &middot; OK открыть &middot; &#8592; назад</div>
+    </header>
+
+    <!-- favourite apps dock, near the bottom, horizontally centred -->
+    <section class="dock-wrap" aria-label="Избранное">
+        <div class="dock" id="dock"></div>
+    </section>
+
+    <!-- full-screen "all apps" overlay -->
+    <div class="overlay" id="overlay" aria-hidden="true">
+        <div class="overlay-inner">
+            <div class="overlay-head">
+                <h1 class="overlay-title" id="overlayTitle">Все приложения</h1>
+                <div class="hint hint-overlay" id="overlayHint">&#9664; &#9654; выбрать &middot; OK открыть &middot; &#8592; назад</div>
+            </div>
+            <div class="grid" id="grid"></div>
+        </div>
+    </div>
+
+    <!-- transient messages (app not installed, HDMI, misconfigured id, ...) -->
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <!-- black cover that fades away once the launcher is ready -->
+    <div class="boot-veil" id="bootVeil"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

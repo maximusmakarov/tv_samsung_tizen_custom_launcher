@@ -9,3 +9,23 @@ tmp/
 device-profile.xml
 .DS_Store?
 ._*
+
+# signing material and generated artifacts — never commit
+*.wgt
+*.p12
+*.pem
+*.key
+device-profile.xml
+signature1.xml
+author-signature.xml
+.manifest.tmp
+dist/
+preview/
+tv/token.json
+tv/pair.log
+logs/
+.venv/
+tmp/
+
+__pycache__/
+*.pyc

@@ -1,0 +1,596 @@
+/* ============================================================================
+   AiTV — an Apple TV-flavoured launcher for a 2016 Samsung Tizen 2.4 (1920x1080)
+   ----------------------------------------------------------------------------
+   Everything is sized in `rem`. One rule sets the root size from the viewport
+   width, so the whole layout scales linearly: 16px @1920 and 10.667px @1280x720.
+
+   Tizen 2.4 note: no CSS Grid (Chrome 57+), no CSS variables (Chrome 49+), no
+   flex `gap` (Chrome 84+). Flexbox + margins + transforms only. Optional
+   effects (backdrop-filter) sit behind @supports and degrade to a plain dim.
+   ========================================================================== */
+
+html {
+    /* 16px at 1920 wide -> 10.667px at 1280 wide */
+    font-size: 0.8333333vw;
+}
+
+* {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    -webkit-focus-ring-color: rgba(0, 0, 0, 0);
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #05060a;
+    color: #ffffff;
+    font-family: "Samsung Sans", "SamsungOne", "SamsungOneUI", -apple-system,
+        "SF Pro Display", "Helvetica Neue", Roboto, "Segoe UI", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    cursor: default;
+}
+
+body.booting {
+    background: #05060a;
+}
+
+/* Before the first reveal the whole UI is laid out with transitions and
+ * animations switched off, so the launcher appears already settled instead of
+ * animating in from a half-baked state (and headless screenshots see the final
+ * look). app.js removes .prelayout right before the boot veil fades out. */
+html.prelayout *,
+html.prelayout *:before,
+html.prelayout *:after,
+html.instant-mode *,
+html.instant-mode *:before,
+html.instant-mode *:after {
+    -webkit-transition: none !important;
+    transition: none !important;
+    -webkit-animation: none !important;
+    animation: none !important;
+}
+
+/* --------------------------------------------------------------- wallpaper */
+.wallpaper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 0;
+    overflow: hidden;
+    background: #070910;
+}
+
+body.no-wallpaper .wallpaper {
+    background:
+        radial-gradient(80% 70% at 22% 10%, #16233a 0%, rgba(11, 14, 22, 0) 62%),
+        radial-gradient(70% 60% at 82% 90%, #1d1526 0%, rgba(11, 14, 22, 0) 60%),
+        linear-gradient(160deg, #0d1420 0%, #090b12 52%, #05060a 100%);
+}
+
+.wp-layer {
+    position: absolute;
+    top: -3%;
+    left: -3%;
+    width: 106%;
+    height: 106%;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+    opacity: 0;
+    transform: scale(1);
+    -webkit-transform: scale(1);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    transition: opacity 1.6s ease;
+    -webkit-transition: opacity 1.6s ease;
+}
+
+/* the slow Ken Burns drift: 1.00 -> 1.06 over the wallpaper lifetime */
+@-webkit-keyframes aity-kenburns {
+    from { -webkit-transform: scale(1) translateZ(0); }
+    to   { -webkit-transform: scale(1.06) translateZ(0); }
+}
+
+@keyframes aity-kenburns {
+    from { transform: scale(1) translateZ(0); }
+    to   { transform: scale(1.06) translateZ(0); }
+}
+
+.wp-layer.kb {
+    -webkit-animation: aity-kenburns 45s linear forwards;
+    animation: aity-kenburns 45s linear forwards;
+}
+
+.wp-scrim {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+        radial-gradient(120% 95% at 26% 0%, rgba(0, 0, 0, 0.34), rgba(0, 0, 0, 0) 62%),
+        linear-gradient(
+            to bottom,
+            rgba(4, 6, 10, 0.60) 0%,
+            rgba(4, 6, 10, 0.22) 24%,
+            rgba(4, 6, 10, 0.10) 50%,
+            rgba(4, 6, 10, 0.48) 78%,
+            rgba(3, 5, 9, 0.84) 100%
+        );
+}
+
+/* focus dim: one thin veil over wallpaper only (below all UI) */
+.dim {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: rgba(3, 5, 10, 0);
+    transition: background 0.32s ease;
+    -webkit-transition: background 0.32s ease;
+}
+
+body.dock-focused .dim,
+body.overlay-open .dim {
+    background: rgba(3, 5, 10, 0.24);
+}
+
+@supports ((-webkit-backdrop-filter: blur(2px)) or (backdrop-filter: blur(2px))) {
+    body.dock-focused .dim {
+        -webkit-backdrop-filter: blur(0.36rem) saturate(1.04);
+        backdrop-filter: blur(0.36rem) saturate(1.04);
+    }
+    body.overlay-open .dim {
+        -webkit-backdrop-filter: blur(0.65rem) saturate(1.05);
+        backdrop-filter: blur(0.65rem) saturate(1.05);
+    }
+}
+
+/* ------------------------------------------------------------------ topbar */
+.topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    padding: 5.4rem 6.8rem 0 6.8rem;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-box-pack: justify;
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+    -webkit-box-align: start;
+    -webkit-align-items: flex-start;
+    align-items: flex-start;
+    pointer-events: none;
+}
+
+.clock-block {
+    opacity: 0;
+    transform: translateY(-0.6rem);
+    -webkit-transform: translateY(-0.6rem);
+    transition: opacity 0.7s ease 0.1s, transform 0.7s ease 0.1s;
+    -webkit-transition: opacity 0.7s ease 0.1s, -webkit-transform 0.7s ease 0.1s;
+}
+
+body.ready .clock-block {
+    opacity: 1;
+    transform: translateY(0);
+    -webkit-transform: translateY(0);
+}
+
+.clock {
+    font-size: 7.6rem;
+    line-height: 0.92;
+    font-weight: 600;
+    letter-spacing: -0.045em;
+    color: #ffffff;
+    text-shadow: 0 0.25rem 2.6rem rgba(0, 0, 0, 0.45);
+    font-variant-numeric: tabular-nums;
+}
+
+.date {
+    margin-top: 1.05rem;
+    font-size: 1.6rem;
+    font-weight: 500;
+    letter-spacing: 0.005em;
+    color: rgba(255, 255, 255, 0.72);
+    text-shadow: 0 0.1rem 1.4rem rgba(0, 0, 0, 0.4);
+}
+
+.hint {
+    margin-top: 1.5rem;
+    font-size: 1.12rem;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    color: rgba(255, 255, 255, 0.52);
+    opacity: 0;
+    transition: opacity 0.6s ease 0.25s;
+    -webkit-transition: opacity 0.6s ease 0.25s;
+}
+
+body.ready .hint {
+    opacity: 1;
+}
+
+/* -------------------------------------------------------------------- dock */
+.dock-wrap {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 2.6rem;
+    z-index: 20;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-box-pack: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.dock {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-box-align: start;
+    -webkit-align-items: flex-start;
+    align-items: flex-start;
+    -webkit-box-pack: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    -webkit-transition: opacity 0.32s ease, -webkit-transform 0.32s ease;
+    transition: opacity 0.32s ease, transform 0.32s ease;
+    opacity: 0;
+    transform: translateY(1.4rem);
+    -webkit-transform: translateY(1.4rem);
+}
+
+body.ready .dock {
+    opacity: 1;
+    transform: translateY(0);
+    -webkit-transform: translateY(0);
+}
+
+body.overlay-open .dock {
+    /* the overlay covers the screen; a faint dock would read as a ghost row */
+    opacity: 0;
+    transform: translateY(1rem) scale(0.985);
+    -webkit-transform: translateY(1rem) scale(0.985);
+}
+
+.tile {
+    position: relative;
+    width: 11rem;
+    margin: 0 0.75rem;
+    padding-bottom: 1.4rem; /* keeps the scaled tile glow clear of the screen edge */
+    -webkit-transform-origin: 50% 62%;
+    transform-origin: 50% 62%;
+    -webkit-transition: -webkit-transform 0.26s cubic-bezier(0.22, 0.61, 0.36, 1);
+    transition: transform 0.26s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.tile-icon {
+    position: relative;
+    width: 11rem;
+    height: 11rem;
+    border-radius: 2.475rem; /* = 0.225 * size, matches the PNG corner radius */
+    background: rgba(255, 255, 255, 0.06);
+    -webkit-transition: box-shadow 0.26s cubic-bezier(0.22, 0.61, 0.36, 1),
+        opacity 0.26s ease;
+    transition: box-shadow 0.26s cubic-bezier(0.22, 0.61, 0.36, 1),
+        opacity 0.26s ease;
+}
+
+.tile-icon img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 2.475rem;
+    -webkit-user-drag: none;
+    pointer-events: none;
+}
+
+.tile-label {
+    margin-top: 0.9rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: 0.005em;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: rgba(255, 255, 255, 0.70);
+    text-shadow: 0 0.1rem 1.2rem rgba(0, 0, 0, 0.45);
+    -webkit-transition: color 0.22s ease;
+    transition: color 0.22s ease;
+}
+
+/* the focused tile: 1.15x, white ring + soft glow */
+.tile.focused {
+    z-index: 5;
+    -webkit-transform: scale(1.15) translateY(-0.35rem);
+    transform: scale(1.15) translateY(-0.35rem);
+}
+
+.tile.focused .tile-icon {
+    box-shadow:
+        0 0 0 0.2rem rgba(255, 255, 255, 0.96),
+        0 0 2.6rem 0.15rem rgba(255, 255, 255, 0.28),
+        0 0 6.2rem 0.75rem rgba(255, 255, 255, 0.18),
+        0 2rem 3.8rem rgba(0, 0, 0, 0.5);
+}
+
+.tile.focused .tile-label {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+/* dim the siblings a touch so the ring reads clearly */
+.dock.has-focus .tile:not(.focused) .tile-icon,
+.grid.has-focus .tile:not(.focused) .tile-icon {
+    opacity: 0.86;
+}
+
+.dock.has-focus .tile:not(.focused) .tile-label,
+.grid.has-focus .tile:not(.focused) .tile-label {
+    color: rgba(255, 255, 255, 0.58);
+}
+
+/* quick press feedback before an app comes to the front */
+.tile.pressed .tile-icon {
+    box-shadow:
+        0 0 0 0.18rem rgba(255, 255, 255, 1),
+        0 0 7rem 1.2rem rgba(255, 255, 255, 0.34),
+        0 2rem 3.8rem rgba(0, 0, 0, 0.5);
+}
+
+.tile.pressed {
+    -webkit-transform: scale(1.11) translateY(-0.35rem);
+    transform: scale(1.11) translateY(-0.35rem);
+}
+
+/* ------------------------------------------------------------ all-apps overlay */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    padding: 4.4rem 6.8rem 3.6rem 6.8rem;
+    background: rgba(7, 9, 14, 0.90);
+    opacity: 0;
+    visibility: hidden;
+    -webkit-transition: opacity 0.28s ease, visibility 0.28s ease;
+    transition: opacity 0.28s ease, visibility 0.28s ease;
+}
+
+@supports ((-webkit-backdrop-filter: blur(2px)) or (backdrop-filter: blur(2px))) {
+    .overlay {
+        background: rgba(7, 9, 14, 0.62);
+        -webkit-backdrop-filter: blur(1.75rem) saturate(1.15);
+        backdrop-filter: blur(1.75rem) saturate(1.15);
+    }
+}
+
+.overlay.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.overlay-inner {
+    height: 100%;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+}
+
+.overlay-head {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-box-pack: justify;
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+    -webkit-box-align: baseline;
+    -webkit-align-items: baseline;
+    align-items: baseline;
+    margin-bottom: 3.4rem;
+}
+
+.overlay-title {
+    margin: 0;
+    font-size: 2.5rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+}
+
+.hint-overlay {
+    margin-top: 0;
+}
+
+.overlay .grid {
+    -webkit-box-flex: 1;
+    -webkit-flex: 1 1 auto;
+    flex: 1 1 auto;
+}
+
+/* --------------------------------------------------------------- apps grid */
+.grid {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+    -webkit-box-pack: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    -webkit-align-content: center;
+    align-content: center;
+    max-width: 90rem; /* exactly 7 tiles per row (each tile + margins = 11.9rem) */
+    margin: 0 auto;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.grid .tile {
+    width: 9.6rem;
+    margin: 0 1.15rem 2.9rem 1.15rem;
+    padding-bottom: 0;
+}
+
+.grid .tile-icon {
+    width: 9.6rem;
+    height: 9.6rem;
+    border-radius: 2.16rem;
+}
+
+.grid .tile-icon img {
+    border-radius: 2.16rem;
+}
+
+.grid .tile-label {
+    margin-top: 0.8rem;
+    font-size: 1.06rem;
+}
+
+.grid .tile.focused {
+    -webkit-transform: scale(1.13) translateY(-0.15rem);
+    transform: scale(1.13) translateY(-0.15rem);
+}
+
+.grid .tile.focused .tile-icon {
+    box-shadow:
+        0 0 0 0.16rem rgba(255, 255, 255, 0.95),
+        0 0 2.2rem 0.1rem rgba(255, 255, 255, 0.24),
+        0 0 5rem 0.6rem rgba(255, 255, 255, 0.15),
+        0 1.8rem 3.4rem rgba(0, 0, 0, 0.45);
+}
+
+/* ------------------------------------------------------------------- toast */
+.toast {
+    position: fixed;
+    left: 50%;
+    bottom: 2.2rem;
+    z-index: 40;
+    max-width: 64rem;
+    padding: 1.05rem 2.1rem;
+    border-radius: 1.1rem;
+    background: rgba(18, 20, 27, 0.94);
+    border: 0.08rem solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 1.4rem 3.4rem rgba(0, 0, 0, 0.45);
+    font-size: 1.14rem;
+    font-weight: 500;
+    line-height: 1.35;
+    letter-spacing: 0.005em;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.94);
+    opacity: 0;
+    -webkit-transform: translateX(-50%) translateY(0.8rem);
+    transform: translateX(-50%) translateY(0.8rem);
+    -webkit-transition: opacity 0.24s ease, -webkit-transform 0.24s ease;
+    transition: opacity 0.24s ease, transform 0.24s ease;
+    pointer-events: none;
+}
+
+.toast.show {
+    opacity: 1;
+    -webkit-transform: translateX(-50%) translateY(0);
+    transform: translateX(-50%) translateY(0);
+}
+
+/* --------------------------------------------------------- boot fade cover */
+.boot-veil {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 60;
+    background: #05060a;
+    opacity: 1;
+    -webkit-transition: opacity 0.7s ease;
+    transition: opacity 0.7s ease;
+    pointer-events: none;
+}
+
+body.ready .boot-veil {
+    opacity: 0;
+}
+
+/* Safety net: 1.2 s after the reveal, force the settled state. On the TV the
+ * transitions have finished long before that, so this is a no-op; in a headless
+ * browser (or any engine whose transition clock is frozen) it guarantees that a
+ * screenshot taken at any later moment shows a fully composed screen. */
+body.revealed .boot-veil {
+    display: none;
+}
+
+body.revealed .clock-block,
+body.revealed .hint,
+body.revealed:not(.overlay-open) .dock {
+    opacity: 1 !important;
+    -webkit-transition: none !important;
+    transition: none !important;
+}
+
+body.revealed .clock-block,
+body.revealed:not(.overlay-open) .dock {
+    -webkit-transform: none !important;
+    transform: none !important;
+}
+
+body.revealed .overlay.open {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* 720p stays perfectly usable; nothing else to change because of rem units */
+@media (max-width: 1500px) {
+    .topbar {
+        padding: 4.8rem 5.2rem 0 5.2rem;
+    }
+}
+
+/* ---------- "Samsung Smart Hub" instruction panel (Smart Hub tile) -------- */
+.samsung-panel {
+    position: fixed; inset: 0; z-index: 40; display: none;
+    background: rgba(4, 6, 10, 0.86);
+    -webkit-box-align: center; align-items: center; -webkit-box-pack: center; justify-content: center;
+}
+.samsung-panel.open { display: -webkit-box; display: flex; }
+.samsung-panel-inner {
+    max-width: 62rem; padding: 3rem 4rem; text-align: center;
+    background: rgba(18, 24, 34, 0.96); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 1.6rem; box-shadow: 0 2rem 6rem rgba(0,0,0,0.6);
+}
+.samsung-panel-title { font-size: 2.6rem; font-weight: 700; color: #fff; margin-bottom: 1.4rem; }
+.samsung-panel-text { font-size: 1.7rem; line-height: 1.55; color: rgba(255,255,255,0.9); }
+.samsung-panel-text b { color: #7fb2ff; }
+.samsung-panel-hint { margin-top: 2rem; font-size: 1.3rem; color: rgba(255,255,255,0.55); }
+
+/* ---------- background sleep: keep the process alive, less memory ---------- */
+body.asleep { background: #0b0f14; }
+body.asleep .wp-layer,
+body.asleep .kb,
+body.asleep .tile { -webkit-animation-play-state: paused; animation-play-state: paused; }

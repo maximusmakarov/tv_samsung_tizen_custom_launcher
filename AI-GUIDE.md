@@ -247,7 +247,7 @@ Tizen CLI-профиль `samsung` прописать в `toolchain/tizen-studio
 | Обои 1280×720 дорого декодировать | 6 обоев 960×540 JPEG q60, два `<div>`-слоя, смена 45 с |
 | Иконки тяжёлые для памяти | 176 px PNG, ленивая загрузка иконок сетки |
 | ТВ убивает фоновое web-приложение при тяжёлом плеере | флаг `"heavy": true` у Wink/Okko → после запуска лаунчер сам вызывает `getCurrentApplication().exit()` |
-| Возврат после тяжёлого плеера (ТВ не знает, куда возвращаться) | Mac-сторож `scripts/tv-watchdog.py`: REST-опрос + `sdb shell 0 was_execute` |
+| Возврат после тяжёлого плеера (ТВ не знает, куда возвращаться) | по умолчанию лаунчер память не отдаёт; если включить `heavy`, возврат — вручную: Home → Smart Hub → APPS → AiTV |
 | Нет скриншотов по сети | камера Mac (`TeleCam.app`) или телефон + `tv/snap.py` |
 
 Поведение и инварианты зафиксированы в **`docs/launcher-spec.md`** (v3.3): состояния, клавиши,
@@ -296,7 +296,7 @@ Tizen CLI-профиль `samsung` прописать в `toolchain/tizen-studio
 - `docs/final-report.md` — что/как/доказательства и таблица ловушек;
 - `docs/settings-before.md` — какие настройки менялись и как вернуть;
 - `scripts/restore.sh` — проверенный откат;
-- `logs/watchdog.log`, `backup/<ts>/CHANGES.md` — история действий.
+- `backup/<ts>/CHANGES.md` и логи выполненных команд — история действий.
 
 ---
 
@@ -337,7 +337,7 @@ cp backup/live/tv-latest.jpg backup/photos/NN-opisanie.jpg
 | `tizen package -o rel_path` пишет в `tools/ide/bin/tmp` | передавать абсолютный `-o` |
 | Клавиша Home не перехватывается | принять штатное поведение Samsung |
 | Системные приложения не запускаются | не пытаться, делать своё UI |
-| Тяжёлый плеер убивает фоновое приложение | `exit()` после запуска плеера + внешний watchdog |
+| Тяжёлый плеер убивает фоновое приложение | не отдавать память (по умолчанию) или `exit()` + ручной возврат через Smart Hub |
 | Диалог dev mode: 4 отдельных октета, нет автоперехода | `KEY_RIGHT` между октетами |
 | Долгое удержание `KEY_POWER` → standby | короткие нажатия |
 
@@ -353,8 +353,8 @@ cp backup/live/tv-latest.jpg backup/photos/NN-opisanie.jpg
 ## Приложение D. Факты этого экземпляра (UE40K6500)
 
 - Модель: Samsung UE40K6500, 2016, Tizen **2.4.0**, платформа `16_HAWKM_FHD`, ARMv7, 1920×1080.
-- Сеть: ТВ `192.168.0.176` (провод), Mac `192.168.0.9` (Wi-Fi, VPN не должен перехватывать маршрут).
-- DUID: `XTCFUGIOVLWWE`; сертификат: `~/Library/Application Support/Apps2Samsung/Certificate/Jelly2Sams - Public/`.
+- Сеть: ТВ `192.168.0.100` (провод), Mac `192.168.0.10` (Wi-Fi, VPN не должен перехватывать маршрут).
+- DUID: `<DUID>`; сертификат: `~/Library/Application Support/Apps2Samsung/Certificate/<CERT_PROFILE> - Public/`.
 - Установлены: `AiTVLaunch.AiTV` (AiTV), `AiTVKeyApp.HomeKey` (AiTVHomeKey).
 - App id: RUTUBE `6M0RIAD0Nz.Rutube`, Кинопоиск `LuOVXzgX7A.kpTizen`, IVI `FD7JrMU4L1.ivi`,
   Wink `O0tF3EHRuU.itv`, Okko `4uI12bRGkE.OkkoHD`, HDMI — через `tizen.tvwindow`.
@@ -368,5 +368,4 @@ cp backup/live/tv-latest.jpg backup/photos/NN-opisanie.jpg
 - [ ] Реклама/телеметрия/OTA выключены настройками; изменения записаны в `CHANGES.md`.
 - [ ] Лаунчер собран, установлен, запускается; спецификация обновлена.
 - [ ] Приёмка T1–T6 пройдена по кадрам камеры; доказательства в `backup/photos/`.
-- [ ] Watchdog (если используется) установлен и стартует автоматически.
 - [ ] README/отчёт/спека актуальны; владелец знает, как откатить и что делать при сбое.

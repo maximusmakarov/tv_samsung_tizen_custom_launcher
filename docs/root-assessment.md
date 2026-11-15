@@ -58,7 +58,7 @@ persist: замена IL у stock on-boot .NET-приложения (dotnet-inho
 ## Артефакты проверки
 
 - UA/фичи браузера: тестовое web-приложение `AiTVProbe1.Probe` (установлено, запущено, удалено),
-  колбэк на `http://192.168.0.9:8765/probe?...` — лог `/tmp/dsh_http.log`:
+  колбэк на `http://192.168.0.10:8765/probe?...` — лог `/tmp/dsh_http.log`:
   `ua=Mozilla/5.0 (SMART-TV; Linux; Tizen 2.4.0) AppleWebKit/538.1 … Safari/538.1&wasm=0&gc=0`
 - capability: `secure_protocol:enabled, intershell_support:disabled, rootonoff_support:disabled,
   platform_version:2.4.0, sdbd_plugin_version:1.0.0`
